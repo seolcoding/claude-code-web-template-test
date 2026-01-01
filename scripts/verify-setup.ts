@@ -6,7 +6,7 @@
  * Run with: npx tsx scripts/verify-setup.ts
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from "fs";
+import { existsSync, readFileSync, readdirSync } from "fs";
 import { join } from "path";
 
 // MCP server health check with timeout
@@ -303,7 +303,6 @@ test("Slash commands exist", () => {
     "init-project.md",
     "preview.md",
     "check-env.md",
-    "add-integration.md",
     "verify.md",
   ];
 
@@ -355,41 +354,22 @@ test("Default plugins installed", () => {
   };
 });
 
-test("Skills directory exists", () => {
+test("Skills directory (optional)", () => {
   if (!existsSync(".claude/skills")) {
     return {
-      status: "warn",
-      message: "No .claude/skills directory",
-      context: "Skills provide reusable prompts and workflows",
-      fix: "Create .claude/skills/ directory with skill markdown files",
+      status: "pass",
+      message: "No skills installed (minimal template)",
     };
   }
 
-  // Skills can be either direct .md files or folders with SKILL.md inside
-  const items = readdirSync(".claude/skills");
-  const skills: string[] = [];
+  const items = readdirSync(".claude/skills").filter(
+    (item) => item.endsWith(".md") || existsSync(`.claude/skills/${item}/SKILL.md`)
+  );
 
-  for (const item of items) {
-    const itemPath = `.claude/skills/${item}`;
-    try {
-      const stat = statSync(itemPath);
-      if (stat.isDirectory()) {
-        // Check for SKILL.md inside folder
-        if (existsSync(`${itemPath}/SKILL.md`)) {
-          skills.push(item);
-        }
-      } else if (item.endsWith(".md")) {
-        skills.push(item.replace(".md", ""));
-      }
-    } catch {
-      // Skip items we can't stat
-    }
-  }
-
-  if (skills.length > 0) {
-    return { status: "pass", message: `Skills: ${skills.join(", ")}` };
-  }
-  return { status: "warn", message: "Skills directory exists but empty" };
+  return {
+    status: "pass",
+    message: items.length > 0 ? `Skills: ${items.join(", ")}` : "No skills installed",
+  };
 });
 
 // =============================================================================
