@@ -85,7 +85,6 @@ if [ ! -f "$PLUGINS_MARKER" ]; then
         "plugin-dev"
         "greptile"
         # Productivity
-        "hookify"
         "commit-commands"
         "pr-review-toolkit"
         "code-review"
