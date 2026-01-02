@@ -20,15 +20,67 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 2. Install dependencies if package.json exists and has dependencies
+# 2. Install dependencies if package.json exists
 # -----------------------------------------------------------------------------
-if [ -f "package.json" ]; then
-    # Check if node_modules exists
-    if [ ! -d "node_modules" ]; then
-        echo "📦 Installing npm dependencies..."
-        npm install --silent
+install_deps() {
+    local pkg_manager="$1"
+    local max_retries=2
+    local attempt=1
+
+    while [ $attempt -le $max_retries ]; do
+        echo "   Attempt $attempt/$max_retries: $pkg_manager install..."
+        if $pkg_manager install 2>/dev/null; then
+            return 0
+        fi
+        echo "   ⚠️ Failed, clearing cache and retrying..."
+        case "$pkg_manager" in
+            bun) rm -rf ~/.bun/install/cache 2>/dev/null ;;
+            pnpm) pnpm store prune 2>/dev/null ;;
+            yarn) yarn cache clean 2>/dev/null ;;
+            npm) npm cache clean --force 2>/dev/null ;;
+        esac
+        attempt=$((attempt + 1))
+    done
+    return 1
+}
+
+detect_pkg_manager() {
+    # Detect from lock file, default to bun (fastest)
+    if [ -f "bun.lockb" ]; then
+        echo "bun"
+    elif [ -f "pnpm-lock.yaml" ]; then
+        echo "pnpm"
+    elif [ -f "yarn.lock" ]; then
+        echo "yarn"
+    elif [ -f "package-lock.json" ]; then
+        echo "npm"
     else
-        echo "✅ npm dependencies already installed"
+        echo "bun"  # Default: bun (fastest)
+    fi
+}
+
+if [ -f "package.json" ]; then
+    if [ ! -d "node_modules" ]; then
+        PKG_MANAGER=$(detect_pkg_manager)
+        echo "📦 Installing dependencies with $PKG_MANAGER..."
+
+        if install_deps "$PKG_MANAGER"; then
+            echo "✅ Dependencies installed with $PKG_MANAGER"
+        else
+            echo "⚠️ $PKG_MANAGER failed, trying fallback..."
+            # Fallback order: bun → pnpm → npm
+            for fallback in bun pnpm npm; do
+                if [ "$fallback" != "$PKG_MANAGER" ]; then
+                    echo "   Trying $fallback..."
+                    if install_deps "$fallback"; then
+                        echo "✅ Dependencies installed with $fallback (fallback)"
+                        break
+                    fi
+                fi
+            done
+        fi
+    else
+        echo "✅ Dependencies already installed"
     fi
 fi
 
@@ -162,8 +214,13 @@ cat > "$STATUS_LOG" << EOF
 EOF
 
 # Run verification and capture output
-if [ -f "scripts/verify-setup.ts" ] && command -v npx &> /dev/null; then
-    VERIFY_OUTPUT=$(npx tsx scripts/verify-setup.ts 2>&1)
+if [ -f "scripts/verify-setup.ts" ]; then
+    # Prefer bun for TypeScript runtime (fastest)
+    if command -v bun &> /dev/null; then
+        VERIFY_OUTPUT=$(bun run scripts/verify-setup.ts 2>&1)
+    elif command -v npx &> /dev/null; then
+        VERIFY_OUTPUT=$(npx tsx scripts/verify-setup.ts 2>&1)
+    fi
 
     # Extract summary
     PASSED=$(echo "$VERIFY_OUTPUT" | grep -o '[0-9]* passed' | head -1 || echo "? passed")

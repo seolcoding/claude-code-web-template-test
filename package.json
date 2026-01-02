@@ -4,7 +4,8 @@
   "description": "Template for web-only Claude Code development with auto-preview deployment",
   "type": "module",
   "scripts": {
-    "check-env": "npx tsx scripts/check-env.ts",
+    "check-env": "bun run scripts/check-env.ts",
+    "verify": "bun run scripts/verify-setup.ts",
     "dev": "echo 'Run /init-project <framework> first to set up your project'",
     "build": "echo 'Run /init-project <framework> first to set up your project'",
     "preview": "echo 'Use Netlify preview URL - localhost not available in web Claude Code'"

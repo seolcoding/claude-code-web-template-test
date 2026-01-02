@@ -2,6 +2,16 @@
 
 Template for developing with **Claude Code on the Web** (claude.ai/code).
 
+## Requirements
+
+| Tool | Version | Notes |
+|------|---------|-------|
+| Node.js | >=20.0.0 | LTS recommended |
+| bun | latest | Default package manager & TS runtime |
+| Git | any | For version control |
+
+> **Note**: Claude Code Web environment has all these pre-installed.
+
 ## Why This Template?
 
 Web Claude Code runs in a sandboxed Gvisor VM with specific constraints:
@@ -54,6 +64,29 @@ Claude writes code → Push to branch → Netlify deploys preview
 → Check preview URL → Iterate → Merge to main
 ```
 
+#### Workflow Examples (Given/When/Then)
+
+**Feature Development:**
+```
+Given: feature branch에 새 컴포넌트 코드 작성 완료
+When: PR 생성 (gh pr create)
+Then: 5분 내 deploy-preview-{PR#}--{site}.netlify.app 접근 가능
+```
+
+**Preview Verification:**
+```
+Given: Netlify 프리뷰 URL 생성됨
+When: WebFetch로 HTML 응답 확인
+Then: 200 OK + 예상 콘텐츠 포함 확인
+```
+
+**Environment Setup:**
+```
+Given: 새 세션 시작
+When: SessionStart 훅 실행
+Then: 의존성 설치 + 환경변수 검증 + 상태 로그 생성
+```
+
 ## Commands
 
 | Command | Description |
@@ -65,16 +98,14 @@ Claude writes code → Push to branch → Netlify deploys preview
 
 ## Default MCP Servers
 
-**OAuth Required:**
-- GitHub (`https://api.githubcopilot.com/mcp/`)
-- Figma (`https://mcp.figma.com/mcp`)
-- Netlify (`https://netlify-mcp.netlify.app/mcp`)
-- Notion (`https://mcp.notion.com/sse`)
+> **SSOT**: See `.mcp.json` for full configuration
 
-**Open (No Auth):**
-- Exa Search (`https://mcp.exa.ai/mcp`)
-- AWS Docs (`https://knowledge-mcp.global.api.aws`)
-- Hugging Face (`https://hf.co/mcp`)
+| Type | Servers |
+|------|---------|
+| **OAuth Required** | github, figma, netlify, notion |
+| **Open (No Auth)** | exa-search, aws-docs, huggingface |
+
+Run `/mcp` in session to authenticate OAuth servers.
 
 ## Structure
 

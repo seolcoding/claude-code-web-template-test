@@ -1,9 +1,52 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env bun
 
 /**
  * Verify Setup Script
  * Tests that the template is correctly configured for Web Claude Code
- * Run with: npx tsx scripts/verify-setup.ts
+ *
+ * Run with: bun run scripts/verify-setup.ts
+ *
+ * =============================================================================
+ * TEST CASES CHECKLIST
+ * =============================================================================
+ *
+ * [Required Files]
+ * - CLAUDE.md exists
+ * - .mcp.json exists
+ * - .claude/settings.json exists
+ * - netlify.toml exists
+ * - scripts/setup.sh exists
+ *
+ * [MCP Configuration]
+ * - .mcp.json has HTTP MCP servers
+ * - No stdio MCP servers (web incompatible)
+ *
+ * [Hooks]
+ * - SessionStart hook is configured
+ *
+ * [Claims]
+ * - CLAUDE.md contains Claims section
+ * - CLAUDE.md contains key claims (NO_LOCALHOST, HTTP_MCP_ONLY, SESSION_EPHEMERAL)
+ *
+ * [Environment]
+ * - NETLIFY_SITE_ID environment variable
+ * - CLAUDE_CODE_REMOTE check
+ * - .env or .env.example exists
+ * - .env.example has required variables
+ *
+ * [Commands]
+ * - Slash commands exist (init-project, preview, check-env, verify)
+ *
+ * [Plugins]
+ * - Default plugins installed
+ * - Skills directory (optional)
+ *
+ * [Visual Testing]
+ * - Visual testing approach (Netlify preview)
+ *
+ * [MCP Health]
+ * - MCP server connectivity checks
+ * =============================================================================
  */
 
 import { existsSync, readFileSync, readdirSync } from "fs";
