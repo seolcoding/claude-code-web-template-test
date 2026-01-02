@@ -1,6 +1,10 @@
 # Dependencies
 node_modules/
 
+# Lock files (use package.json for version ranges)
+bun.lock
+bun.lockb
+
 # Build outputs
 dist/
 build/
